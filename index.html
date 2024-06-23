@@ -20,6 +20,7 @@
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            width: 400px;
         }
         #status {
             margin-bottom: 20px;
@@ -28,7 +29,7 @@
         #messages {
             border: 1px solid #ccc;
             padding: 10px;
-            width: 300px;
+            width: 100%;
             height: 200px;
             overflow-y: scroll;
             margin: 20px 0;
@@ -38,13 +39,25 @@
         .message {
             margin-bottom: 10px;
         }
+        .input-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        input[type="text"] {
+            flex-grow: 1;
+            padding: 10px;
+            margin-right: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1em;
+        }
         button {
             padding: 10px 20px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             font-size: 1em;
-            margin: 5px;
             transition: background 0.3s;
         }
         #connectBtn {
@@ -61,6 +74,13 @@
         #disconnectBtn:hover {
             background: #c82333;
         }
+        #sendBtn {
+            background: #007bff;
+            color: white;
+        }
+        #sendBtn:hover {
+            background: #0069d9;
+        }
     </style>
 </head>
 <body>
@@ -69,6 +89,10 @@
         <button id="connectBtn">Connect</button>
         <button id="disconnectBtn" disabled>Disconnect</button>
         <div id="messages"></div>
+        <div class="input-container">
+            <input type="text" id="messageInput" placeholder="Enter message" disabled>
+            <button id="sendBtn" disabled>Send</button>
+        </div>
     </div>
 
     <script type="module">
@@ -79,6 +103,8 @@
         const messagesElement = document.getElementById('messages');
         const connectBtn = document.getElementById('connectBtn');
         const disconnectBtn = document.getElementById('disconnectBtn');
+        const sendBtn = document.getElementById('sendBtn');
+        const messageInput = document.getElementById('messageInput');
 
         connectBtn.addEventListener('click', () => {
             ws = new WebSocket('wss://echo.websocket.org');
@@ -86,8 +112,15 @@
             ws.onopen = () => {
                 statusElement.textContent = 'Connected';
                 logMessage('Connected to WebSocket');
-                ws.send(Date.now());
                 toggleButtons(true);
+
+                // Send a message to WebSocket every two seconds
+                setInterval(() => {
+                    if (ws && ws.readyState === WebSocket.OPEN) {
+                        const timestamp = Date.now();
+                        ws.send(timestamp);
+                    }
+                }, 2000);
             };
 
             ws.onclose = () => {
@@ -97,15 +130,35 @@
             };
 
             ws.onmessage = (event) => {
-                const roundtripTime = Date.now() - event.data;
-                logMessage(`Roundtrip time: ${roundtripTime} ms`);
-                ws.send(Date.now());
+                const roundtripTime = Date.now() - parseInt(event.data, 10);
+                if (!isNaN(roundtripTime)) {
+                    logMessage(`Roundtrip time: ${roundtripTime} ms`);
+                } else {
+                    logMessage(`Received: ${event.data}`);
+                }
+            };
+
+            ws.onpaused = () => {
+                logMessage('Connection paused');
+            };
+
+            ws.onresumed = () => {
+                logMessage('Connection resumed');
             };
         });
 
         disconnectBtn.addEventListener('click', () => {
             if (ws) {
                 ws.close();
+            }
+        });
+
+        sendBtn.addEventListener('click', () => {
+            const message = messageInput.value;
+            if (ws && message) {
+                ws.send(message);
+                logMessage(`Sent: ${message}`);
+                messageInput.value = '';
             }
         });
 
@@ -120,6 +173,8 @@
         function toggleButtons(isConnected) {
             connectBtn.disabled = isConnected;
             disconnectBtn.disabled = !isConnected;
+            sendBtn.disabled = !isConnected;
+            messageInput.disabled = !isConnected;
         }
     </script>
 </body>
