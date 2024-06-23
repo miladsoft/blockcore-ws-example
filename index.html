@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blockcore WebSocket Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #f0f0f0;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        #status {
+            margin-bottom: 20px;
+            font-size: 1.2em;
+        }
+        #messages {
+            border: 1px solid #ccc;
+            padding: 10px;
+            width: 300px;
+            height: 200px;
+            overflow-y: scroll;
+            margin: 20px 0;
+            border-radius: 5px;
+            background: #fafafa;
+        }
+        .message {
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            margin: 5px;
+            transition: background 0.3s;
+        }
+        #connectBtn {
+            background: #28a745;
+            color: white;
+        }
+        #connectBtn:hover {
+            background: #218838;
+        }
+        #disconnectBtn {
+            background: #dc3545;
+            color: white;
+        }
+        #disconnectBtn:hover {
+            background: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="status">Disconnected</div>
+        <button id="connectBtn">Connect</button>
+        <button id="disconnectBtn" disabled>Disconnect</button>
+        <div id="messages"></div>
+    </div>
+
+    <script type="module">
+        import WebSocket from './node_modules/blockcore-ws/browser.js';
+
+        let ws;
+        const statusElement = document.getElementById('status');
+        const messagesElement = document.getElementById('messages');
+        const connectBtn = document.getElementById('connectBtn');
+        const disconnectBtn = document.getElementById('disconnectBtn');
+
+        connectBtn.addEventListener('click', () => {
+            ws = new WebSocket('wss://echo.websocket.org');
+
+            ws.onopen = () => {
+                statusElement.textContent = 'Connected';
+                logMessage('Connected to WebSocket');
+                ws.send(Date.now());
+                toggleButtons(true);
+            };
+
+            ws.onclose = () => {
+                statusElement.textContent = 'Disconnected';
+                logMessage('Disconnected from WebSocket');
+                toggleButtons(false);
+            };
+
+            ws.onmessage = (event) => {
+                const roundtripTime = Date.now() - event.data;
+                logMessage(`Roundtrip time: ${roundtripTime} ms`);
+                ws.send(Date.now());
+            };
+        });
+
+        disconnectBtn.addEventListener('click', () => {
+            if (ws) {
+                ws.close();
+            }
+        });
+
+        function logMessage(message) {
+            const messageElement = document.createElement('div');
+            messageElement.className = 'message';
+            messageElement.textContent = message;
+            messagesElement.appendChild(messageElement);
+            messagesElement.scrollTop = messagesElement.scrollHeight;
+        }
+
+        function toggleButtons(isConnected) {
+            connectBtn.disabled = isConnected;
+            disconnectBtn.disabled = !isConnected;
+        }
+    </script>
+</body>
+</html>

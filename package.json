@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "blockcore-ws": "^1.0.0"
+  }
+}
