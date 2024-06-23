@@ -1,0 +1,35 @@
+{
+  "name": "blockcore-ws",
+  "version": "1.0.0",
+  "description": "Blockcore-ws is a WebSocket library designed to facilitate seamless WebSocket communication across various environments.",
+  "main": "node.js",
+  "types": "index.d.ts",
+  "browser": "browser.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/block-core/blockcore-ws.git"
+  },
+  "keywords": [
+    "browser",
+    "browsers",
+    "blockcore",
+    "node",
+    "websocket",
+    "ws"
+  ],
+  "author": "blockcore",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/block-core/blockcore-ws/issues"
+  },
+  "homepage": "https://github.com/block-core/blockcore-ws#readme",
+  "peerDependencies": {
+    "ws": "*"
+  },
+  "files": [
+    "index.d.ts",
+    "node.js",
+    "browser.js",
+    "README.md"
+  ]
+}
